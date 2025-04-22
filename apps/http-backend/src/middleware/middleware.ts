@@ -10,24 +10,36 @@ const AuthMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  const token = req.headers["authorization"] ?? "";
+  try {
+    const token = req.headers["authorization"] ?? "";
 
-  const JWT_SECRET = process.env.JWT_SECRET;
-  if (!JWT_SECRET) {
-    return;
-  }
-  const decoded = jwt.verify(token, JWT_SECRET);
+    const JWT_SECRET = process.env.JWT_SECRET;
 
-  if (typeof decoded === "string") {
-    return;
-  }
+    if (!JWT_SECRET) {
+      res.status(403).json({
+        message: "Unauthorized",
+      });
+      return;
+    }
+    const decoded = jwt.verify(token, JWT_SECRET);
 
-  if (decoded) {
-    req.userId = decoded.userId;
-    next();
-  } else {
-    res.status(403).json({
+    if (typeof decoded === "string") {
+      return;
+    }
+
+    if (decoded) {
+      req.userId = decoded.userId;
+      next();
+    } else {
+      res.status(403).json({
+        message: "Unauthorized",
+      });
+      return;
+    }
+  } catch (error) {
+    res.status(500).json({
       message: "Unauthorized",
     });
+    return;
   }
 };
