@@ -19,4 +19,24 @@ model User {
   username String
   email    String
   password String
+  rooms    Room[]
+  chats    Chat[]
+}
+
+model Room {
+  id        String   @id @default(uuid())
+  slug      String   @unique
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  chats     Chat[]
+}
+
+model Chat {
+  id      String @id @default(uuid())
+  message String
+  roomId  String
+  room    Room   @relation(fields: [roomId], references: [id])
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
 }

@@ -1,12 +1,13 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
 
 interface AuthenticationRequest extends Request {
   userId: string;
 }
 
 const AuthMiddleware = (
-  req: AuthenticationRequest,
+  req: Request,
   res: Response,
   next: NextFunction
 ) => {
@@ -27,15 +28,15 @@ const AuthMiddleware = (
       return;
     }
 
-    if (decoded) {
-      req.userId = decoded.userId;
-      next();
-    } else {
+    if (!decoded) {
       res.status(403).json({
         message: "Unauthorized",
       });
       return;
     }
+
+    req.userId = decoded.userId;
+    next();
   } catch (error) {
     res.status(500).json({
       message: "Unauthorized",
@@ -43,3 +44,10 @@ const AuthMiddleware = (
     return;
   }
 };
+
+const HashPassword = async (password: string): Promise<string> => {
+  const hashedPassword = await bcrypt.hash(password, 10);
+  return hashedPassword;
+};
+
+export { AuthMiddleware, HashPassword };
