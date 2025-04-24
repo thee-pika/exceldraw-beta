@@ -22,6 +22,7 @@ const AuthMiddleware = (
       });
       return;
     }
+    
     const decoded = jwt.verify(token, JWT_SECRET);
 
     if (typeof decoded === "string") {

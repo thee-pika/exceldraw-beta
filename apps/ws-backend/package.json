@@ -4,9 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "tsc -b",
+    "dev": "node dist/index.js",
+    "start": "pnpm run build && pnpm run dev"
   },
   "devDependencies": {
+    "@repo/db": "workspace:*",
     "@repo/typescript-config": "workspace:*"
   },
   "keywords": [],
@@ -15,6 +18,7 @@
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.9",
     "@types/ws": "^8.18.1",
+    "dotenv": "^16.5.0",
     "jsonwebtoken": "^9.0.2",
     "ws": "^8.18.1"
   }

@@ -1,4 +1,4 @@
-import express from "express";
+import { Router } from "express";
 import {
   SignInSchema,
   SignUpSchema,
@@ -7,7 +7,10 @@ import {
 import { prisma } from "@repo/db/db";
 import { AuthMiddleware, HashPassword } from "../middleware/middleware";
 import jwt from "jsonwebtoken";
-const userRouter = express();
+import { config } from "dotenv";
+config();
+
+export const userRouter: Router = Router();
 
 userRouter.post("/signup", async (req, res) => {
   try {
@@ -81,7 +84,7 @@ userRouter.post("/signin", async (req, res) => {
     }
 
     const JWT_SECRET = process.env.JWT_SECRET;
-
+    console.log("JWT_SECRET", JWT_SECRET);
     if (!JWT_SECRET) {
       res.status(400).json({
         error: "JWT_SECRET Not Found ",
@@ -137,4 +140,53 @@ userRouter.post("/room", AuthMiddleware, async (req, res) => {
       error: "Internal server error",
     });
   }
+});
+
+userRouter.get("/chats/:roomId", async (req, res) => {
+  try {
+    const roomId = req.params.roomId;
+
+    if (!roomId) {
+      res.status(400).json({
+        error: "Invalid roomId data",
+      });
+      return;
+    }
+
+    const messages = await prisma.chat.findMany({
+      where: {
+        roomId,
+      },
+      orderBy: {
+        id: "desc",
+      },
+      take: 50,
+    });
+
+    if(!messages) {
+      res.status(400).json({
+        error: "No messages Found!!",
+      });
+    }
+
+    console.log("chats", messages);
+
+    res.status(200).json({ messages });
+  } catch (error) {
+    res.status(500).json({
+      error: "Internal server error",
+    });
+  }
+});
+
+userRouter.get("/room/:slug", async (req, res) => {
+  const slug = req.params.slug;
+
+  const room = await prisma.room.findFirst({
+    where: {
+      slug,
+    },
+  });
+
+  res.json({ room });
 });
