@@ -155,7 +155,7 @@ userRouter.get("/chats/:roomId", async (req, res) => {
 
     const messages = await prisma.chat.findMany({
       where: {
-        roomId,
+        roomId: Number(roomId),
       },
       orderBy: {
         id: "desc",
@@ -163,7 +163,7 @@ userRouter.get("/chats/:roomId", async (req, res) => {
       take: 50,
     });
 
-    if(!messages) {
+    if (!messages) {
       res.status(400).json({
         error: "No messages Found!!",
       });

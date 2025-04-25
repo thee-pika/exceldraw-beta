@@ -1,3 +1,5 @@
+import axios from "axios";
+
 type Shape =
   | {
       type: "rect";
@@ -13,17 +15,28 @@ type Shape =
       radius: number;
     };
 
-export const initDraw = (canvas: HTMLCanvasElement) => {
+export const initDraw = async (
+  canvas: HTMLCanvasElement,
+  roomId: string,
+  socket: WebSocket
+) => {
   const ctx = canvas.getContext("2d");
 
-  let existingShapes: Shape[] = [];
-
+  let existingShapes: Shape[] = await getExistingShapes(roomId);
+  console.log("existingShapes ", existingShapes);
   if (!ctx) {
     return;
   }
 
-  //   ctx.fillStyle = "rgba(0, 0, 0)";
-  //   ctx.fillRect(0, 0, canvas.width, canvas.height);
+  socket.onmessage = (event) => {
+    const message = JSON.parse(event.data);
+
+    if (message.type === "chat") {
+      const parsedShape = JSON.parse(message.message);
+      existingShapes.push(parsedShape.shape);
+      clearCanvas(existingShapes, ctx, canvas);
+    }
+  };
 
   clearCanvas(existingShapes, ctx, canvas);
 
@@ -39,17 +52,33 @@ export const initDraw = (canvas: HTMLCanvasElement) => {
   });
 
   canvas.addEventListener("mouseup", (e) => {
+    console.log("sending req");
+    clicked = false;
     const width = e.clientX - startX;
     const height = e.clientY - startY;
 
-    existingShapes.push({
+    const shape: Shape = {
       type: "rect",
       x: startX,
       y: startY,
       width,
       height,
-    });
-    
+    };
+
+    console.log("shape shape ", shape);
+    existingShapes.push(shape);
+    console.log("after pushed existingShapes ", existingShapes);
+
+    socket.send(
+      JSON.stringify({
+        type: "chat",
+        message: JSON.stringify({
+          shape,
+        }),
+        roomId: Number(roomId),
+      })
+    );
+
     clearCanvas(existingShapes, ctx, canvas);
   });
 
@@ -82,4 +111,19 @@ const clearCanvas = (
       ctx.strokeRect(shape.x, shape.y, shape.width, shape.height);
     }
   });
+};
+
+const getExistingShapes = async (roomId: string) => {
+  const res = await axios.get(
+    `${process.env.NEXT_PUBLIC_BACKEND_URI}/api/v1/chats/${roomId}`
+  );
+
+  const messages = res.data.messages;
+
+  const shapes = messages.map((x: { message: string }) => {
+    const messageData = JSON.parse(x.message);
+    return messageData.shape;
+  });
+
+  return shapes;
 };
