@@ -145,14 +145,14 @@ userRouter.post("/room", AuthMiddleware, async (req, res) => {
 userRouter.get("/chats/:roomId", async (req, res) => {
   try {
     const roomId = req.params.roomId;
-
+console.log("roomId", roomId);
     if (!roomId) {
       res.status(400).json({
         error: "Invalid roomId data",
       });
       return;
     }
-
+   
     const messages = await prisma.chat.findMany({
       where: {
         roomId: Number(roomId),
@@ -162,6 +162,8 @@ userRouter.get("/chats/:roomId", async (req, res) => {
       },
       take: 50,
     });
+
+    console.log("messages", messages);
 
     if (!messages) {
       res.status(400).json({

@@ -35,7 +35,6 @@ const IsAuthenticated = (token: string): null | string => {
 };
 
 wss.on("connection", function connection(ws, request) {
-  // localhost:9000?token=ngvrfbvudyn
 
   const url = request.url;
   const queryParams = new URLSearchParams(url?.split("?")[1]);
@@ -98,7 +97,6 @@ wss.on("connection", function connection(ws, request) {
         },
       });
 
-      console.log("chat", chat);
       users.forEach((user) => {
         user.ws.send(
           JSON.stringify({
